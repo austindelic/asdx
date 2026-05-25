@@ -62,7 +62,7 @@ concurrency:
 
 jobs:
     build:
-        name: Build ${{ github.event_name == 'workflow_dispatch' && inputs.image-name || env.DEFAULT_IMAGE_NAME }} ${{ github.event_name == 'workflow_dispatch' && inputs.artifact-type || 'qcow2' }}
+        name: Build disk image
         runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
 
         permissions:
@@ -79,11 +79,10 @@ jobs:
                   echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> "${GITHUB_ENV}"
                   echo "USER_UID=${USER_UID}" >> "${GITHUB_ENV}"
                   echo "USER_GID=${USER_GID}" >> "${GITHUB_ENV}"
-
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "IMAGE_NAME=${{ inputs.image-name }}" >> "${GITHUB_ENV}"
-                    echo "IMAGE_TAG=${{ inputs.image-tag }}" >> "${GITHUB_ENV}"
-                    echo "ARTIFACT_TYPE=${{ inputs.artifact-type }}" >> "${GITHUB_ENV}"
+                    echo "IMAGE_NAME=${{ inputs['image-name'] }}" >> "${GITHUB_ENV}"
+                    echo "IMAGE_TAG=${{ inputs['image-tag'] }}" >> "${GITHUB_ENV}"
+                    echo "ARTIFACT_TYPE=${{ inputs['artifact-type'] }}" >> "${GITHUB_ENV}"
                   else
                     echo "IMAGE_NAME=${DEFAULT_IMAGE_NAME}" >> "${GITHUB_ENV}"
                     echo "IMAGE_TAG=${DEFAULT_TAG}" >> "${GITHUB_ENV}"
