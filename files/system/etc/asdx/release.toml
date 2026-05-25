@@ -1,0 +1,6 @@
+name = "ASDX"
+image = "asdx"
+desktop = "COSMIC"
+base = "ghcr.io/ublue-os/base-main:latest"
+package_model = ["flatpak", "homebrew", "mise"]
+ax_status = "deferred"

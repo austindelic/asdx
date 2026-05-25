@@ -1,0 +1,63 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+name: asdx
+description: ASDX - COSMIC-first Fedora Atomic / Universal Blue productivity OS
+
+base-image: ghcr.io/ublue-os/base-main
+image-version: latest
+platforms:
+  - linux/amd64
+
+modules:
+  - type: akmods
+    base: main
+    nvidia-driver: nvidia-open
+    install:
+      - nvidia
+
+  - type: dnf
+    group-install:
+      packages:
+        - cosmic-desktop-environment
+    install:
+      packages:
+        # COSMIC/desktop integration
+        - xdg-desktop-portal
+        - xdg-desktop-portal-cosmic
+        - xdg-desktop-portal-gtk
+
+        # Hardware and desktop helpers
+        - brightnessctl
+        - playerctl
+        - pavucontrol
+        - blueman
+        - network-manager-applet
+        - gnome-disk-utility
+
+        # Base workstation tooling
+        - git
+        - neovim
+        - tmux
+        - zsh
+        - fastfetch
+        - btop
+        - ripgrep
+        - fd-find
+        - fzf
+        - podman
+        - distrobox
+        - flatpak
+
+        # Default app
+        - firefox
+
+  - type: systemd
+    system:
+      enabled:
+        - podman.socket
+        - cosmic-greeter.service
+
+  - type: files
+    files:
+      - source: system
+        destination: /

@@ -1,8 +1,7 @@
-# This file is completely optional, but if you want to index your image on https://artifacthub.io/ you can 
-# Sign up and add the Repository ID to the right field. Owners fields are optional.
-# Examples: https://artifacthub.io/packages/search?ts_query_web=ublue&sort=relevance&page=1 
+# This file is optional. If ASDX is indexed on https://artifacthub.io/,
+# replace repositoryID and owners with the Artifact Hub claim details.
 
 repositoryID: my-custom-id-here # Fill in with your own credentials 
-owners: # (optional, used to claim repository ownership)
-  - name: My Name
-    email: my_email@email.com
+owners: # (optional, used to claim repository ownership)
+  - name: ASDX Maintainers
+    email: maintainers@example.com

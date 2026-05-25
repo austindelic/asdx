@@ -1,0 +1,5 @@
+ASDX - COSMIC-first Fedora Atomic / Universal Blue productivity OS
+
+The v0.1 image focuses on booting a lean COSMIC workstation with AMD, Intel,
+and modern Nvidia GPU support. The ax package manager is planned for a later
+milestone and is not installed in this image yet.

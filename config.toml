@@ -1,0 +1,8 @@
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "10 GiB"
+
+[[customizations.user]]
+name = "asdx"
+password = "asdx"
+groups = ["wheel"]

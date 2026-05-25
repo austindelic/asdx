@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+name: asdx-arm64
+description: ASDX - COSMIC-first Apple Silicon / UTM test image
+
+base-image: ghcr.io/ublue-os/base-main
+image-version: latest
+platforms:
+  - linux/arm64
+
+modules:
+  - type: dnf
+    group-install:
+      packages:
+        - cosmic-desktop-environment
+    install:
+      packages:
+        # COSMIC/desktop integration
+        - xdg-desktop-portal
+        - xdg-desktop-portal-cosmic
+        - xdg-desktop-portal-gtk
+
+        # Hardware and desktop helpers
+        - brightnessctl
+        - playerctl
+        - pavucontrol
+        - blueman
+        - network-manager-applet
+        - gnome-disk-utility
+
+        # Base workstation tooling
+        - git
+        - neovim
+        - tmux
+        - zsh
+        - fastfetch
+        - btop
+        - ripgrep
+        - fd-find
+        - fzf
+        - podman
+        - distrobox
+        - flatpak
+
+        # Default app
+        - firefox
+
+  - type: systemd
+    system:
+      enabled:
+        - podman.socket
+        - cosmic-greeter.service
+
+  - type: files
+    files:
+      - source: system
+        destination: /

@@ -1,0 +1,2 @@
+brew "cosign" 
+brew "gh"
