@@ -80,27 +80,29 @@ jobs:
                   echo "USER_UID=${USER_UID}" >> "${GITHUB_ENV}"
                   echo "USER_GID=${USER_GID}" >> "${GITHUB_ENV}"
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "IMAGE_NAME=${{ inputs['image-name'] }}" >> "${GITHUB_ENV}"
-                    echo "IMAGE_TAG=${{ inputs['image-tag'] }}" >> "${GITHUB_ENV}"
-                    echo "ARTIFACT_TYPE=${{ inputs['artifact-type'] }}" >> "${GITHUB_ENV}"
+                    image_name="${{ inputs['image-name'] }}"
+                    image_tag="${{ inputs['image-tag'] }}"
+                    artifact_type="${{ inputs['artifact-type'] }}"
+                    echo "IMAGE_NAME=${image_name:-${DEFAULT_IMAGE_NAME}}" >> "${GITHUB_ENV}"
+                    echo "IMAGE_TAG=${image_tag:-${DEFAULT_TAG}}" >> "${GITHUB_ENV}"
+                    echo "ARTIFACT_TYPE=${artifact_type:-qcow2}" >> "${GITHUB_ENV}"
                   else
                     echo "IMAGE_NAME=${DEFAULT_IMAGE_NAME}" >> "${GITHUB_ENV}"
                     echo "IMAGE_TAG=${DEFAULT_TAG}" >> "${GITHUB_ENV}"
                     echo "ARTIFACT_TYPE=qcow2" >> "${GITHUB_ENV}"
                   fi
 
-            - name: Install dependencies
-              if: github.event_name == 'workflow_dispatch' && inputs.platform == 'arm64'
-              run: |
-                  set -x
-                  sudo apt update -y
-                  sudo apt install -y podman
-
             - name: Maximize build space
               if: github.event_name != 'workflow_dispatch' || inputs.platform != 'arm64'
               uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
               with:
                   remove-codeql: true
+
+            - name: Install dependencies
+              run: |
+                  set -x
+                  sudo apt-get update
+                  sudo apt-get install -y containernetworking-plugins podman
 
             - name: Checkout
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -113,15 +115,36 @@ jobs:
 
             - name: Build disk image
               id: build
-              uses: osbuild/bootc-image-builder-action@main
-              with:
-                  builder-image: ${{ env.BIB_IMAGE }}
-                  config-file: ./disk_config/disk.toml
-                  image: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-                  chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
-                  types: ${{ env.ARTIFACT_TYPE }}
-                  rootfs: ext4
-                  additional-args: --use-librepo=True
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  image_ref="${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG:-${DEFAULT_TAG}}"
+                  output_dir="${PWD}/output"
+
+                  sudo rm -rf "${output_dir}"
+                  mkdir -p "${output_dir}"
+
+                  sudo podman pull "${BIB_IMAGE}"
+                  sudo podman pull "${image_ref}"
+                  sudo podman run \
+                    --rm \
+                    --privileged \
+                    --pull=newer \
+                    --net=host \
+                    --security-opt label=type:unconfined_t \
+                    --volume "${PWD}/disk_config/disk.toml:/config.toml:ro" \
+                    --volume "${output_dir}:/output" \
+                    --volume /var/lib/containers/storage:/var/lib/containers/storage \
+                    "${BIB_IMAGE}" \
+                    --output /output \
+                    --chown "${USER_UID}:${USER_GID}" \
+                    --rootfs ext4 \
+                    --use-librepo=True \
+                    --type "${ARTIFACT_TYPE}" \
+                    "${image_ref}"
+
+                  echo "output-directory=${output_dir}" >> "${GITHUB_OUTPUT}"
 
             - name: Upload disk image and checksum to job artifacts
               if: inputs.upload-to-s3 != true && github.event_name != 'pull_request'
